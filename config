@@ -1,0 +1,39 @@
+### Dfinger config file
+# Blank lines and lines starting with a hash (#) are ignored
+
+# Spaces and tabs between key and value are ignored,
+# though at least one space/tab is required;
+# keys are case-sensitive
+# Beware: Trailing spaces are parsed as part of value
+
+# Should the program behave as a server?
+IS_SERVER	1
+# Should the program behave as a client?
+IS_CLIENT	0
+
+# Port which server listens on and clients connect to
+PORT 8000
+SERVER_ADDR		10.10.10.140
+# Number of seconds between client updates
+TIMEOUT_UPDATE		10
+# Number of seconds between last update and automatic machine logout
+TIMEOUT_LIFETIME	900
+# Number of login records kept for each user and each machine
+NUM_RECORDS		100
+# Number of seconds between last update and records deletion
+# 60 * 60 * 24 * 90
+ARCHIVE_TIME		7776000
+
+# Name of file where server regularly dumps info for case of crash or shutdown
+DUMP_FILE		serverdump
+TIMEOUT_DUMP		20
+
+# Maximal length of message sent by client
+# There shouldn't be any reason to change this value
+MAX_MSG_SIZE 2000
+
+
+### FINGER part
+
+# Port on which server accepts finger requests
+FINGER_PORT 8558
