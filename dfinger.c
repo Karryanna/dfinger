@@ -19,7 +19,7 @@ char conf_file[256];
 int main(int argc, char **argv) {
 	if (argc > 2) {
 		print_usage();
-		return 1;
+		return (1);
 	}
 
 	snprintf(conf_file, 256, "config");
@@ -27,12 +27,13 @@ int main(int argc, char **argv) {
 		strncpy(conf_file, argv[1], 256);
 	}
 
-	conf = malloc(sizeof(struct conf));
+	conf = malloc(sizeof (struct conf));
 	if (!conf) {
-		fprintf(stderr, "Could not allocate memory for configuration\n");
-		return 1;
+		fprintf(stderr,
+			"Could not allocate memory for configuration\n");
+		return (1);
 	}
-	memset(conf, 0, sizeof(struct conf));
+	memset(conf, 0, sizeof (struct conf));
 	conf_set_defaults(conf);
 
 	parse_config(conf_file, conf);
@@ -47,8 +48,8 @@ int main(int argc, char **argv) {
 
 	if (!conf->is_server && !conf->is_client) {
 		fprintf(stderr, "Neither server nor client run specified\n");
-		return 1;
+		return (1);
 	}
 
-	return 0;
+	return (0);
 }

@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE 600
+#define	_XOPEN_SOURCE 600
 
 #include <stdlib.h>
 #include <string.h>
@@ -23,14 +23,14 @@ static void process_online_users(int s, void *(f)(char *));
 static char * parse_user(const struct utmpx *uinfo, int *written) {
 	char *msg = malloc(conf->max_msg_size);
 	if (!msg) {
-		return NULL;
+		return (NULL);
 	}
 
 	long long login_time = (long long) uinfo->ut_tv.tv_sec;
 	long long idle_time;
 	struct timeval cur_time;
 
- 	char term_buf[MY_UT_LINESIZE+10];
+	char term_buf[MY_UT_LINESIZE+10];
 
 	struct stat buffer;
 	memset(term_buf, 0, MY_UT_LINESIZE + 10);
@@ -40,19 +40,18 @@ static char * parse_user(const struct utmpx *uinfo, int *written) {
 	}
 	if (stat(term_buf, &buffer) == 0) {
 		idle_time = cur_time.tv_sec - buffer.st_atime;
-	}
-	else {
+	} else {
 		idle_time = -1;
 	}
 
 	*written = snprintf(msg, conf->max_msg_size, "%s %s %lld %lld %s \n",
-		 uinfo->ut_user,
-		 uinfo->ut_line,
-		 login_time,
-		 idle_time,
-		 uinfo->ut_host);
+			uinfo->ut_user,
+			uinfo->ut_line,
+			login_time,
+			idle_time,
+			uinfo->ut_host);
 
-	return msg;
+	return (msg);
 }
 
 static void process_online_users(int s, void *(f)(char *)) {
@@ -70,8 +69,7 @@ static void process_online_users(int s, void *(f)(char *)) {
 
 		if (s) {
 			flush(s, uline, uline_len);
-		}
-		else {
+		} else {
 			f(uline);
 		}
 		free(uline);
@@ -82,14 +80,13 @@ static void process_online_users(int s, void *(f)(char *)) {
 void client_run(void) {
 	int sock;
 	struct addrinfo *r, *rorig, hints;
-	memset(&hints, 0, sizeof(hints));
+	memset(&hints, 0, sizeof (hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	char hoststr[1024];
 	if (conf->host_addr) {
 		snprintf(hoststr, 1024, "%s", conf->host_addr);
-	}
-	else {
+	} else {
 		snprintf(hoststr, 1024, "%s", "localhost");
 	}
 	char portstr[5];
@@ -107,10 +104,10 @@ void client_run(void) {
 			exit(2);
 		}
 
-		if (connect(sock, (struct sockaddr *) r->ai_addr, r->ai_addrlen) == 0) {
+		if (connect(sock, (struct sockaddr *) r->ai_addr,
+				r->ai_addrlen) == 0) {
 			break;
-		}
-		else {
+		} else {
 			close(sock);
 		}
 	}

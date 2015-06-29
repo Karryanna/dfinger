@@ -30,39 +30,39 @@ void conf_set_defaults(struct conf *conf) {
 static char *find_spaces(char *ptr) {
 	while (*ptr) {
 		if (*ptr == ' ' || *ptr == '\t') {
-			return ptr;
+			return (ptr);
 		}
 
 		ptr++;
 	}
 
-	return NULL;
+	return (NULL);
 }
 
 static char *skip_spaces(char *ptr) {
 	while (*ptr) {
 		if (*ptr != ' ' && *ptr != '\t') {
-			return ptr;
+			return (ptr);
 		}
 
 		ptr++;
 	}
 
-	return NULL;
+	return (NULL);
 }
 
 static int extract_fields(char *line, char *key, char *value) {
 	if (line[0] == '#') {
-		return 3;
+		return (3);
 	}
 
 	char *sep = find_spaces(line);
 	if (!sep) {
-		return 1;
+		return (1);
 	}
 
 	if (sep - line + 1 > KEY_SIZE) {
-		return 2;
+		return (2);
 	}
 	strncpy(key, line, sep-line);
 	key[sep-line] = 0;
@@ -70,12 +70,12 @@ static int extract_fields(char *line, char *key, char *value) {
 	line = skip_spaces(sep);
 
 	if (sep - line + 1 > VALUE_SIZE) {
-		return 2;
+		return (2);
 	}
 	strncpy(value, line, strlen(line));
 	value[strlen(line)] = 0;
 
-	return 0;
+	return (0);
 }
 
 static void set_option(char *line, struct conf *conf) {
@@ -161,7 +161,7 @@ void parse_config(char *filename, struct conf *conf) {
 	while ((num_read = read(conf_file, buffer, DFINGER_BUFFER_SIZE) > 0)) {
 		blen += num_read;
 		while ((ret = fetch_line(buffer, blen, &boffset, line, llen)) !=
-		        RTL_WANT_MORE) {
+			RTL_WANT_MORE) {
 			switch (ret) {
 				case RTL_LINE_FETCHED:
 					set_option(line, conf);

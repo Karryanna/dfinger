@@ -1,6 +1,6 @@
 #ifndef __SERVER_H
-#define __SERVER_H
-#define _XOPEN_SOURCE 600
+#define	__SERVER_H
+#define	_XOPEN_SOURCE 600
 
 #include <unistd.h>
 

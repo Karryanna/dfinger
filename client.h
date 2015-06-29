@@ -1,5 +1,5 @@
 #ifndef __CLIENT_H
-#define __CLIENT_H
+#define	__CLIENT_H
 
 #include <sys/socket.h>
 #include <arpa/inet.h>

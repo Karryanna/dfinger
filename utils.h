@@ -1,9 +1,9 @@
-#ifndef __DFINGER_CONFIG_H
-#define __DFINGER_CONFIG_H
+#ifndef	__DFINGER_CONFIG_H
+#define	__DFINGER_CONFIG_H
 
 #include <stdlib.h>
 
-#define UNUSED(x) (void)(x)
+#define	UNUSED(x) (void)(x)
 
 struct growing_buffer {
 	char *buffer;
@@ -27,7 +27,7 @@ char *format_timediff(long long secs);
 int flush(int s, char *msg, size_t len);
 void move_buffer(char *buffer, size_t buffer_len, size_t *buffer_offset);
 enum ret_fetch_line fetch_line(const char *buffer, size_t buffer_len,
-                               size_t *buffer_offset, char *buffer_line,
-                               size_t line_len);
+				size_t *buffer_offset, char *buffer_line,
+				size_t line_len);
 
 #endif

@@ -22,7 +22,7 @@ struct user {
 struct machine {
 	char hostname[UT_HOSTSIZE];
 	long long last_activity;	// Time since last update
-	int connection_id;		// Index in connections (and socks) array
+	int connection_id;		// Index in connections (& socks) array
 	struct login_data *logins;
 	struct login_data *past_logins;
 	struct machine *next;
@@ -39,7 +39,8 @@ struct connection {
 	struct machine *machine;
 	enum connection_type type;
 	char buffer[DFINGER_BUFFER_SIZE];	// Input buffer
-	size_t offset;				// Current offset in input buffer
+	size_t offset;				// Current offset in input
+						// buffer
 	struct growing_buffer *response;	// Output buffer
 };
 
@@ -69,22 +70,26 @@ static void stack_init(struct login_stack *stack, size_t max_size);
 static void stack_free(struct login_stack *stack);
 static void stack_add(struct login_stack *stack, struct login_data *login);
 
-static void append_buffer(struct growing_buffer *buffer, char *str, size_t str_len);
+static void append_buffer(struct growing_buffer *buffer, char *str,
+			size_t str_len);
 
 static struct user * fetch_next_user(struct user *initial, char *name);
 static int finger_user_matches(struct user *user, char *username);
-static void get_logins_machine(struct login_stack *stack, struct machine *machine);
+static void get_logins_machine(struct login_stack *stack,
+				struct machine *machine);
 static void get_logins_user(struct login_stack *stack, struct user *user,
-                            char *hostname);
+				char *hostname);
 
 static int finger_complete_request(char *buffer, size_t len);
-static void finger_parse_request(char *request_str, struct finger_request *request);
+static void finger_parse_request(char *request_str,
+				struct finger_request *request);
 static void finger_process_request(struct finger_request *request,
-                                   struct growing_buffer *response);
+				struct growing_buffer *response);
 static void finger_forward_request(struct finger_request *request,
-                                   struct growing_buffer *response);
+				struct growing_buffer *response);
 
-static int sprint_login(struct login_data *login, char *buffer, size_t buffer_size);
+static int sprint_login(struct login_data *login, char *buffer,
+				size_t buffer_size);
 
 
 static void read_data(void);
@@ -99,9 +104,9 @@ static void write_logins(int dump_file);
 
 static int bind_sock(int port);
 static void initial_bind(struct connection *connections, struct pollfd *socks,
-                         struct conf *conf);
+			struct conf *conf);
 static void accept_connection(int sock_id,
-                              struct conf *conf, enum connection_type type);
+				struct conf *conf, enum connection_type type);
 static void free_connection(int idx);
 
 static ssize_t read_message(int fd, struct connection *con);
@@ -166,7 +171,7 @@ static void sigterm_handler(int sig) {
 	quitting = 1;
 	write_data();
 
-	for (int i=0; i<connections_used; i++) {
+	for (int i = 0; i < connections_used; i++) {
 		close(socks[i].fd);
 	}
 	exit(0);
@@ -175,15 +180,13 @@ static void sigterm_handler(int sig) {
 static void init_buffer(struct growing_buffer *buffer, size_t max_size) {
 	if (max_size) {
 		buffer->max_size = max_size;
-	}
-	else {
+	} else {
 		buffer->max_size = 8192; // FIX ME
 	}
 
 	if (max_size >= 2) {
 		buffer->size = 2;
-	}
-	else {
+	} else {
 		buffer->size = buffer->max_size;
 	}
 
@@ -202,19 +205,17 @@ void free_buffer(struct growing_buffer *buffer) {
 static void stack_init(struct login_stack *stack, size_t max_size) {
 	if (max_size) {
 		stack->max_size = max_size;
-	}
-	else {
+	} else {
 		stack->max_size = 4096; // FIX ME
 	}
 
 	if (max_size >= 2) {
 		stack->size = 2;
-	}
-	else {
+	} else {
 		stack->size = stack->max_size;
 	}
 
-	stack->stack = malloc(stack->size * sizeof(struct login_data *));
+	stack->stack = malloc(stack->size * sizeof (struct login_data *));
 	if (!stack->stack) {
 		exit(47);
 	}
@@ -227,29 +228,29 @@ static void stack_free(struct login_stack *stack) {
 
 static int finger_complete_request(char *buffer, size_t len) {
 	if (len < 2) {
-		return 0;
+		return (0);
 	}
 
 	if (buffer[len-1] == 10 && buffer[len-2] == 13) {
-		return 1;
+		return (1);
 	}
 
-	return 0;
+	return (0);
 }
 
 static int finger_user_matches(struct user *user, char *username) {
 	if (strcmp(user->username, username) == 0) {
-		return 1;
+		return (1);
 	}
 
 	if (!user->fullname) {
-		return 0;
+		return (0);
 	}
 
 	char *ptr = user->fullname;
 	while (*ptr) {
 		if (strcmp(ptr, username) == 0) {
-			return 1;
+			return (1);
 		}
 
 		while (*ptr != ' ' && *ptr != '-' && *ptr != 0) {
@@ -257,7 +258,7 @@ static int finger_user_matches(struct user *user, char *username) {
 		}
 	}
 
-	return 0;
+	return (0);
 }
 
 static void stack_add(struct login_stack *stack, struct login_data *login) {
@@ -265,12 +266,10 @@ static void stack_add(struct login_stack *stack, struct login_data *login) {
 		if (stack->size * 2 <= stack->max_size) {
 			stack->stack = realloc(stack->stack, stack->size*2);
 			stack->size *= 2;
-		}
-		else if (stack->size < stack->max_size) {
+		} else if (stack->size < stack->max_size) {
 			stack->stack = realloc(stack->stack, stack->max_size);
 			stack->size = stack->max_size;
-		}
-		else {
+		} else {
 			// FIX ME
 		}
 
@@ -282,7 +281,8 @@ static void stack_add(struct login_stack *stack, struct login_data *login) {
 	stack->stack[stack->end++] = login;
 }
 
-static void get_logins_machine(struct login_stack *stack, struct machine *machine) {
+static void get_logins_machine(struct login_stack *stack,
+				struct machine *machine) {
 	if (!machine) {
 		return;
 	}
@@ -295,14 +295,15 @@ static void get_logins_machine(struct login_stack *stack, struct machine *machin
 }
 
 static void get_logins_user(struct login_stack *stack, struct user *user,
-                            char *hostname) {
+				char *hostname) {
 	if (!user) {
 		return;
 	}
 
 	struct login_data *login = user->logins;
 	while (login) {
-		if (!*hostname || strcmp(hostname, login->machine->hostname) == 0) {
+		if (!*hostname ||
+			strcmp(hostname, login->machine->hostname) == 0) {
 			stack_add(stack, login);
 		}
 		login = login->next_by_user;
@@ -318,7 +319,7 @@ static struct user * fetch_next_user(struct user *initial, char *name) {
 		user = user->next;
 	}
 
-	return user;
+	return (user);
 }
 
 int cmp_logins_by_logintime(const void *p1, const void *p2) {
@@ -328,33 +329,34 @@ int cmp_logins_by_logintime(const void *p1, const void *p2) {
 	if ((a->idle_time > 0 && b->idle_time > 0) ||
 	    (a->idle_time < 0 && b->idle_time < 0)) {
 		if (a->login_time > b->login_time) {
-			return -1;
+			return (-1);
 		}
-		return 1;
+		return (1);
 	}
 
 	if (a->idle_time < 0) {
-		return 1;
+		return (1);
 	}
 
-	return -1;
+	return (-1);
 }
 
 int cmp_logins_by_name(const void *p1, const void *p2) {
 	struct login_data *a = * ((struct login_data **) p1);
 	struct login_data *b = * ((struct login_data **) p2);
 
-	return strcmp(a->user->username, b->user->username);
+	return (strcmp(a->user->username, b->user->username));
 }
 
 static void finger_forward_request(struct finger_request *request,
-                                   struct growing_buffer *response) {
-        UNUSED(request->forward);
+				struct growing_buffer *response) {
+	UNUSED(request->forward);
 
-        append_buffer(response, "Finger forwarding service denied", 33);
+	append_buffer(response, "Finger forwarding service denied", 33);
 }
 
-static void append_buffer(struct growing_buffer *buffer, char *str, size_t str_len) {
+static void append_buffer(struct growing_buffer *buffer, char *str,
+			size_t str_len) {
 	if (buffer->size - buffer->len < str_len) {
 		if (buffer->size == buffer->max_size) {
 			fprintf(stderr, "Buffer overflow\n");
@@ -364,7 +366,7 @@ static void append_buffer(struct growing_buffer *buffer, char *str, size_t str_l
 		}
 
 		buffer->size = (buffer->size * 2 < buffer->max_size ?
-		               buffer->size * 2 : buffer->max_size);
+				buffer->size * 2 : buffer->max_size);
 		buffer->buffer = realloc(buffer->buffer, buffer->size);
 		if (!buffer->buffer) {
 			exit(47);
@@ -375,26 +377,28 @@ static void append_buffer(struct growing_buffer *buffer, char *str, size_t str_l
 	buffer->len += str_len;
 }
 
-static int sprint_login(struct login_data *login, char *buffer, size_t buffer_size) {
+static int sprint_login(struct login_data *login, char *buffer,
+			size_t buffer_size) {
 	char *login_time = format_timediff(cur_secs() - login->login_time);
 	char *idle_time = format_timediff(login->idle_time);
-	int written = snprintf(buffer, buffer_size, "%-15s %-15s %8s %6s %6s %s\n",
-	         login->user->username,
-	         login->machine->hostname,
-	         login->line,
-	         login_time,
-	         idle_time,
-	         login->host);
+	int written = snprintf(buffer, buffer_size,
+				"%-15s %-15s %8s %6s %6s %s\n",
+			login->user->username,
+			login->machine->hostname,
+			login->line,
+			login_time,
+			idle_time,
+			login->host);
 	free(idle_time);
 	free(login_time);
 
-	return written;
+	return (written);
 }
 
 static void finger_respond(int idx) {
 	socks[idx].events = 0;
 	struct finger_request request;
-	memset(&request, 0, sizeof(struct finger_request));
+	memset(&request, 0, sizeof (struct finger_request));
 	finger_parse_request(connections[idx].buffer, &request);
 	finger_process_request(&request, connections[idx].response);
 	connections[idx].response->offset = 0;
@@ -402,7 +406,7 @@ static void finger_respond(int idx) {
 }
 
 static void finger_process_request(struct finger_request *request,
-                                   struct growing_buffer *response) {
+					struct growing_buffer *response) {
 	if (request->forward) {
 		finger_forward_request(request, response);
 		return;
@@ -417,13 +421,11 @@ static void finger_process_request(struct finger_request *request,
 			get_logins_user(&stack, user, request->host);
 			user = user->next;
 		}
-	}
-	else {
+	} else {
 		if (*(request->host)) {
 			struct machine *machine = find_machine(request->host);
 			get_logins_machine(&stack, machine);
-		}
-		else {
+		} else {
 			struct machine *machine = mlist;
 			while (machine) {
 				get_logins_machine(&stack, machine);
@@ -434,11 +436,12 @@ static void finger_process_request(struct finger_request *request,
 
 	char buffer[DFINGER_BUFFER_SIZE];
 
-	qsort(stack.stack, stack.end, sizeof(struct login_data *), cmp_logins_by_name);
+	qsort(stack.stack, stack.end, sizeof (struct login_data *),
+		cmp_logins_by_name);
 
-	for (size_t i = 0; i<stack.end; i++) {
-
-		int len = sprint_login(stack.stack[i], buffer, DFINGER_BUFFER_SIZE);
+	for (size_t i = 0; i < stack.end; i++) {
+		int len = sprint_login(stack.stack[i], buffer,
+					DFINGER_BUFFER_SIZE);
 		append_buffer(response, buffer, len);
 	}
 
@@ -447,7 +450,8 @@ static void finger_process_request(struct finger_request *request,
 	stack_free(&stack);
 }
 
-static void finger_parse_request(char *request_str, struct finger_request *request) {
+static void finger_parse_request(char *request_str,
+				struct finger_request *request) {
 	char *first_at_sign = strchr(request_str, '@');
 	char *last_at_sign = strrchr(request_str, '@');
 	if (first_at_sign != last_at_sign) {
@@ -467,8 +471,7 @@ static void finger_parse_request(char *request_str, struct finger_request *reque
 		strncpy(request->host, host_start, (end - host_start));
 		request->host[end-host_start] = 0;
 		end = first_at_sign;
-	}
-	else {
+	} else {
 		request->host[0] = 0;
 	}
 
@@ -501,14 +504,13 @@ static void fix_logins_machine(struct machine *machine) {
 		login = login->next_by_machine;
 	}
 
-	qsort(stack.stack, stack.end, sizeof(struct login_data *),
-	      cmp_logins_by_logintime);
-	
+	qsort(stack.stack, stack.end, sizeof (struct login_data *),
+		cmp_logins_by_logintime);
 	machine->logins = NULL;
 	machine->past_logins = NULL;
 	int set_past = 0;
 
-	for (int i=stack.end-1; i>=0; i--) {
+	for (int i = stack.end-1; i >= 0; i--) {
 		if (stack.stack[i]->idle_time > 0 && !set_past) {
 			machine->past_logins = machine->logins;
 			machine->logins = NULL;
@@ -516,7 +518,7 @@ static void fix_logins_machine(struct machine *machine) {
 		}
 		machine->logins = stack.stack[i];
 		stack.stack[i]->next_by_machine = ((size_t) i+1 < stack.end ?
-		                                   stack.stack[i+1] : NULL);
+						stack.stack[i+1] : NULL);
 	}
 
 	stack_free(&stack);
@@ -532,14 +534,13 @@ static void fix_logins_user(struct user *user) {
 		login = login->next_by_user;
 	}
 
-	qsort(stack.stack, stack.end, sizeof(struct login_data *),
-	      cmp_logins_by_logintime);
-	
+	qsort(stack.stack, stack.end, sizeof (struct login_data *),
+		cmp_logins_by_logintime);
 	user->logins = NULL;
 	user->past_logins = NULL;
 	int set_past = 0;
 
-	for (int i=stack.end-1; i>=0; i--) {
+	for (int i = stack.end-1; i >= 0; i--) {
 		if (stack.stack[i]->idle_time > 0 && !set_past) {
 			user->past_logins = user->logins;
 			user->logins = NULL;
@@ -551,8 +552,7 @@ static void fix_logins_user(struct user *user) {
 		if ((size_t) i+1 < stack.end) {
 			stack.stack[i+1]->prev_by_user = stack.stack[i];
 			stack.stack[i]->next_by_user = stack.stack[i+1];
-		}
-		else {
+		} else {
 			stack.stack[i]->next_by_user = NULL;
 		}
 	}
@@ -567,9 +567,9 @@ static void read_data(void) {
 	if (dump_file < 0) {
 		if (errno == EACCES) {
 			fprintf(stderr, "Could not access dump file\n");
-		}
-		else {
-			fprintf(stderr, "Could not open dump file, assuming there isn't any\n");
+		} else {
+			fprintf(stderr, "Could not open dump file, "
+					"assuming there isn't any\n");
 		}
 
 		return;
@@ -580,7 +580,8 @@ static void read_data(void) {
 	char line[DFINGER_LINE_SIZE];
 	memset(line, 0, DFINGER_LINE_SIZE);
 
-	size_t blen = DFINGER_BUFFER_SIZE, boffset = 0, llen = DFINGER_LINE_SIZE;
+	size_t blen = DFINGER_BUFFER_SIZE, boffset = 0,
+			llen = DFINGER_LINE_SIZE;
 
 	enum reading_state {
 		READING_MACHINES,
@@ -594,7 +595,8 @@ static void read_data(void) {
 
 	while (read(dump_file, buffer, DFINGER_BUFFER_SIZE) > 0) {
 		int ret;
-		while ((ret = fetch_line(buffer, blen, &boffset, line, llen)) != RTL_WANT_MORE) {
+		while ((ret = fetch_line(buffer, blen, &boffset, line, llen))
+				!= RTL_WANT_MORE) {
 			switch (ret) {
 				case RTL_BLANK_LINE:
 					switch (state) {
@@ -603,13 +605,15 @@ static void read_data(void) {
 							break;
 						case READING_USERS:
 						case READING_LOGINS:
-							state = READING_MACHNAME;
+							state =
+							    READING_MACHNAME;
 							break;
 						case READING_MACHNAME:
 							break;
 						default:
 							fprintf(stderr,
-							"Unexpected blank line in dumpfile\n");
+							"Unexpected blank line"
+							" in dumpfile\n");
 							exit(2);
 					}
 					break;
@@ -621,21 +625,26 @@ static void read_data(void) {
 						case READING_USERS:
 							add_user(line);
 							break;
-						case READING_MACHNAME: ;
-							cur_machine = find_machine(line);
+						case READING_MACHNAME:;
+							cur_machine =
+							    find_machine(line);
 							state = READING_LOGINS;
 							break;
-						case READING_LOGINS: ;
+						case READING_LOGINS:;
 							struct login login;
-							fetch_login(line, &login);
-							add_raw_login(cur_machine, &login);
+							fetch_login(line,
+								&login);
+							add_raw_login(
+								cur_machine,
+								&login);
 							break;
 					}
 					break;
 				case RTL_TOO_LONG:
 				case RTL_ERROR_OCCURED:
 					fprintf(stderr,
-					"Error occured while parsing dumpfile\n");
+					"Error occured while parsing "
+					"dumpfile\n");
 					exit(2);
 			}
 
@@ -668,13 +677,14 @@ static void write_machines(int dump_file) {
 
 	while (machine) {
 		if (strlen(machine->hostname) > chars_left) {
-			flush(dump_file, buffer, DFINGER_BUFFER_SIZE - chars_left);
+			flush(dump_file, buffer,
+				DFINGER_BUFFER_SIZE - chars_left);
 			chars_left = DFINGER_BUFFER_SIZE;
 			buffer_offset = 0;
 		}
 
 		written = snprintf(buffer+buffer_offset, chars_left, "%s\n",
-		                       machine->hostname);
+					machine->hostname);
 		chars_left -= written;
 		buffer_offset += written;
 		machine = machine->next;
@@ -694,13 +704,14 @@ static void write_users(int dump_file) {
 
 	while (user) {
 		if (strlen(user->username) > chars_left) {
-			flush(dump_file, buffer, DFINGER_BUFFER_SIZE - chars_left);
+			flush(dump_file, buffer,
+				DFINGER_BUFFER_SIZE - chars_left);
 			chars_left = DFINGER_BUFFER_SIZE;
 			buffer_offset = 0;
 		}
 
 		written = snprintf(buffer+buffer_offset, chars_left, "%s\n",
-		                       user->username);
+					user->username);
 		chars_left -= written;
 		buffer_offset += written;
 		user = user->next;
@@ -722,12 +733,14 @@ static void write_logins(int dump_file) {
 		struct login_data *login = machine->logins;
 
 		if (strlen(machine->hostname) > chars_left) {
-			flush(dump_file, buffer, DFINGER_BUFFER_SIZE - chars_left);
+			flush(dump_file, buffer,
+				DFINGER_BUFFER_SIZE - chars_left);
 			chars_left = DFINGER_BUFFER_SIZE;
 			buffer_offset = 0;
 		}
-		written = snprintf(buffer+buffer_offset, strlen(machine->hostname)+2,
-		                   "%s\n", machine->hostname);
+		written = snprintf(buffer+buffer_offset,
+					strlen(machine->hostname)+2,
+				"%s\n", machine->hostname);
 		chars_left -= written;
 		buffer_offset += written;
 
@@ -735,7 +748,8 @@ static void write_logins(int dump_file) {
 			if (strlen(login->user->username) +
 			    strlen(login->line) + strlen(login->host) + 50
 			    > chars_left) {
-				flush(dump_file, buffer, DFINGER_BUFFER_SIZE - chars_left);
+				flush(dump_file, buffer,
+					DFINGER_BUFFER_SIZE - chars_left);
 				chars_left = DFINGER_BUFFER_SIZE;
 				buffer_offset = 0;
 			}
@@ -755,7 +769,8 @@ static void write_logins(int dump_file) {
 			if (strlen(login->user->username) +
 			    strlen(login->line) + strlen(login->host) + 50
 			    > chars_left) {
-				flush(dump_file, buffer, DFINGER_BUFFER_SIZE - chars_left);
+				flush(dump_file, buffer,
+					DFINGER_BUFFER_SIZE - chars_left);
 				chars_left = DFINGER_BUFFER_SIZE;
 				buffer_offset = 0;
 			}
@@ -787,10 +802,11 @@ static void write_logins(int dump_file) {
 
 static void write_data(void) {
 	char *tmpfile = malloc(strlen(conf->dump_file) + 4 + 1);
-	snprintf(tmpfile, strlen(conf->dump_file) + 4 + 1, "%s.tmp", conf->dump_file);
+	snprintf(tmpfile, strlen(conf->dump_file) + 4 + 1, "%s.tmp",
+		conf->dump_file);
 
 	int dump_file = open(tmpfile, O_WRONLY | O_CREAT,
-	                              S_IRUSR | S_IRGRP | S_IROTH);
+					S_IRUSR | S_IRGRP | S_IROTH);
 	if (dump_file < 0) {
 		fprintf(stderr, "Could not open dump file\n");
 		return;
@@ -806,7 +822,7 @@ static void write_data(void) {
 
 static int bind_sock(int port) {
 	struct addrinfo *r, hints;
-	memset(&hints, 0, sizeof(hints));
+	memset(&hints, 0, sizeof (hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
@@ -827,11 +843,11 @@ static int bind_sock(int port) {
 		exit(1);
 	}
 
-	return fd;
+	return (fd);
 }
 
 static void initial_bind(struct connection *connections, struct pollfd *socks,
-                         struct conf *conf) {
+			struct conf *conf) {
 	connections[0].in_use = 1;
 	socks[0].fd = bind_sock(conf->port);
 	socks[0].events = POLLIN;
@@ -852,15 +868,15 @@ static struct machine * find_machine(char *hostname) {
 			continue;
 		}
 
-		return machine;
+		return (machine);
 	}
 
-	return NULL;
+	return (NULL);
 }
 
 static struct machine * add_machine(char *hostname) {
-	struct machine *machine = malloc(sizeof(struct machine));
-	memset(machine, 0, sizeof(*machine));
+	struct machine *machine = malloc(sizeof (struct machine));
+	memset(machine, 0, sizeof (*machine));
 
 	strncpy(machine->hostname, hostname, strlen(hostname));
 
@@ -869,7 +885,7 @@ static struct machine * add_machine(char *hostname) {
 	machine->next = mlist;
 	mlist = machine;
 
-	return machine;
+	return (machine);
 }
 
 static struct user * find_user(char *username) {
@@ -881,10 +897,10 @@ static struct user * find_user(char *username) {
 			continue;
 		}
 
-		return user;
+		return (user);
 	}
 
-	return NULL;
+	return (NULL);
 }
 
 static void get_user_info(struct user *user) {
@@ -908,23 +924,24 @@ static void get_user_info(struct user *user) {
 }
 
 static struct user * add_user(char *username) {
-	struct user *user = malloc(sizeof(struct user));
-	memset(user, 0, sizeof(*user));
+	struct user *user = malloc(sizeof (struct user));
+	memset(user, 0, sizeof (*user));
 
-	strncpy(user->username, username, sizeof(user->username));
+	strncpy(user->username, username, sizeof (user->username));
 	get_user_info(user);
 
 	user->next = ulist;
 	ulist = user;
 
-	return user;
+	return (user);
 }
 
 static void add_login(struct machine *machine, struct login_data *login_data) {
 	login_data->next_by_machine = machine->logins;
 
-	if (login_data->user->logins)
-	  login_data->user->logins->prev_by_user = login_data;
+	if (login_data->user->logins) {
+		login_data->user->logins->prev_by_user = login_data;
+	}
 	login_data->next_by_user = login_data->user->logins;
 	login_data->user->logins = login_data;
 
@@ -934,8 +951,8 @@ static void add_login(struct machine *machine, struct login_data *login_data) {
 }
 
 static void add_raw_login(struct machine *machine, struct login *login) {
-	struct login_data *login_data = malloc(sizeof(struct login_data));
-	memset(login_data, 0, sizeof(struct login_data));
+	struct login_data *login_data = malloc(sizeof (struct login_data));
+	memset(login_data, 0, sizeof (struct login_data));
 	login_data->machine = machine;
 	login_data->login_time = login->login_time;
 	login_data->idle_time = login->idle_time;
@@ -953,10 +970,10 @@ static void update_login(struct machine *machine, struct login *login) {
 	struct login_data *login_data = machine->logins;
 
 	while (login_data) {
-		if (strcmp(login_data->user->username, login->user) != 0
-		    || login_data->login_time != login->login_time
-		    || strcmp(login_data->line, login->line) != 0
-		    || strcmp(login_data->host, login->host) != 0) {
+		if (strcmp(login_data->user->username, login->user) != 0 ||
+		    login_data->login_time != login->login_time ||
+		    strcmp(login_data->line, login->line) != 0 ||
+		    strcmp(login_data->host, login->host) != 0) {
 			login_data = login_data->next_by_machine;
 			continue;
 		}
@@ -987,15 +1004,18 @@ static void delete_logins(struct machine *machine, int all) {
 			struct login_data *tmp = login->next_by_machine;
 
 			if (login->next_by_user) {
-				login->next_by_user->prev_by_user = login->prev_by_user;
+				login->next_by_user->prev_by_user =
+				    login->prev_by_user;
 			}
 
 			if (login->prev_by_user) {
-				login->prev_by_user->next_by_user = login->next_by_user;
+				login->prev_by_user->next_by_user =
+				    login->next_by_user;
 			}
 
 			if (prev) {
-				prev->next_by_machine = login->next_by_machine;
+				prev->next_by_machine =
+				    login->next_by_machine;
 			}
 
 			machine->logins = login->next_by_machine;
@@ -1030,7 +1050,8 @@ static void logout_machine(struct machine *machine) {
 static void check_machines(void) {
 	struct machine *machine = mlist;
 	while (machine) {
-		if (cur_secs() - machine->last_activity > conf->client_lifetime) {
+		if (cur_secs() - machine->last_activity >
+		    conf->client_lifetime) {
 			free_connection(machine->connection_id);
 			delete_logins(machine, 1);
 		}
@@ -1067,7 +1088,8 @@ static void clear_old_logins() {
 		struct login_data *prev_login = NULL;
 
 		while (login) {
-			if (cur_secs() - login->login_time < conf->archive_time) {
+			if (cur_secs() - login->login_time <
+			    conf->archive_time) {
 				struct login_data *tmp = login->next_by_machine;
 				clear_login(login, prev_login);
 				login = tmp;
@@ -1105,7 +1127,7 @@ static void clear_old_users(void) {
 	struct user *prev = NULL;
 
 	while (user) {
-		if (user->least_idle > conf->archive_time) {		
+		if (user->least_idle > conf->archive_time) {
 			// All logins should be freed by now
 			if (prev) {
 				prev->next = user->next;
@@ -1184,7 +1206,7 @@ static void cut_records(void) {
 }
 
 static void accept_connection(int sock_id,
-                              struct conf *conf, enum connection_type type) {
+				struct conf *conf, enum connection_type type) {
 	if (connections_size == connections_used) {
 		if (connections_size >= conf->max_clients) {
 			// TODO: logging
@@ -1198,32 +1220,36 @@ static void accept_connection(int sock_id,
 		}
 
 		connections_size = (connections_size * 2 < conf->max_clients ?
-		                    connections_size * 2 : conf->max_clients);
-		connections = realloc(connections, connections_size * sizeof(struct connection));
+				    connections_size * 2 : conf->max_clients);
+		connections = realloc(connections,
+				connections_size * sizeof (struct connection));
 		if (!connections) {
 			exit(47);
 		}
-		socks = realloc(socks, connections_size * sizeof(struct pollfd));
+		socks = realloc(socks,
+				connections_size * sizeof (struct pollfd));
 		if (!socks) {
 			exit(47);
 		}
-		memset(connections + (connections_size / 2), 0, (connections_size / 2) * sizeof(struct connection));
-		memset(socks + (connections_size / 2), 0, (connections_size / 2) * sizeof(struct pollfd));
+		memset(connections + (connections_size / 2), 0,
+			(connections_size / 2) * sizeof (struct connection));
+		memset(socks + (connections_size / 2), 0,
+			(connections_size / 2) * sizeof (struct pollfd));
 
 	}
 	int idx = connections_used;
 
 	struct sockaddr_storage ca;
-	socklen_t sz = sizeof(ca);
+	socklen_t sz = sizeof (ca);
 	connections[idx].type = type;
 	socks[idx].fd = accept(socks[sock_id].fd, (struct sockaddr *) &ca, &sz);
 	socks[idx].events = POLLIN;
 
 	if (type == client) {
 		char host[100]; char service[100];
-		if (getnameinfo((struct sockaddr *) &ca, sizeof(ca),
-		                 host, sizeof(host),
-		                 service, sizeof(service), 0) != 0) {
+		if (getnameinfo((struct sockaddr *) &ca, sizeof (ca),
+				host, sizeof (host),
+				service, sizeof (service), 0) != 0) {
 			// What shall happen?
 		}
 
@@ -1239,7 +1265,7 @@ static void accept_connection(int sock_id,
 		connections[idx].machine->connection_id = idx;
 	}
 
-	connections[idx].response = malloc(sizeof(struct growing_buffer));
+	connections[idx].response = malloc(sizeof (struct growing_buffer));
 	init_buffer(connections[idx].response, 0);
 	connections[idx].in_use = 1;
 	connections_used++;
@@ -1250,13 +1276,13 @@ static void accept_connection(int sock_id,
 static char * get_next_field(char *buffer, char *dest, size_t max_size) {
 	char *sep = strchr(buffer, ' ');
 	if (!sep) {
-		return NULL;
+		return (NULL);
 	}
 	sep++;
 
 	size_t len = (size_t) (sep - 1 - buffer);
 	if (len > max_size) {
-		return NULL;
+		return (NULL);
 	}
 
 	strncpy(dest, buffer, len);
@@ -1264,39 +1290,39 @@ static char * get_next_field(char *buffer, char *dest, size_t max_size) {
 		dest[len] = 0;
 	}
 
-	return sep;
+	return (sep);
 }
 
 static int fetch_login(char *buffer, struct login *login) {
 	buffer = get_next_field(buffer, login->user, UT_NAMESIZE);
 	if (!buffer) {
-		return 1;
+		return (1);
 	}
 
 	buffer = get_next_field(buffer, login->line, MY_UT_LINESIZE);
 	if (!buffer) {
-		return 1;
+		return (1);
 	}
 
 	char time[DFINGER_BUFFER_SIZE];
 	buffer = get_next_field(buffer, time, DFINGER_BUFFER_SIZE);
 	if (!buffer) {
-		return 1;
+		return (1);
 	}
 	login->login_time = atoll(time);
 
 	buffer = get_next_field(buffer, time, DFINGER_BUFFER_SIZE);
 	if (!buffer) {
-		return 1;
+		return (1);
 	}
 	login->idle_time = atoll(time);
 
 	buffer = get_next_field(buffer, login->host, UT_HOSTSIZE);
 	if (!buffer) {
-		return 1;
+		return (1);
 	}
 
-	return 0;
+	return (0);
 }
 
 static void free_connection(int idx) {
@@ -1310,7 +1336,7 @@ static void free_connection(int idx) {
 	}
 
 	strncpy(connections[connections_used].buffer,
-	        connections[idx].buffer, DFINGER_BUFFER_SIZE);
+		connections[idx].buffer, DFINGER_BUFFER_SIZE);
 
 	connections[idx].machine = connections[connections_used].machine;
 	connections[idx].type = connections[connections_used].type;
@@ -1325,9 +1351,9 @@ static void free_connection(int idx) {
 
 static ssize_t read_message(int fd, struct connection *con) {
 	ssize_t num_read = read(fd, con->buffer + con->offset,
-	                       DFINGER_BUFFER_SIZE - con->offset);
+				DFINGER_BUFFER_SIZE - con->offset);
 	if (num_read < 0) {
-		return num_read;
+		return (num_read);
 	}
 	size_t buf_len = con->offset + num_read;
 	con->offset = 0;
@@ -1337,20 +1363,19 @@ static ssize_t read_message(int fd, struct connection *con) {
 	size_t line_len = DFINGER_LINE_SIZE;
 
 	while ((ret = fetch_line(con->buffer, buf_len, &(con->offset),
-	                         line, line_len)) == RTL_LINE_FETCHED) {
-	        if (line[0] == '!') {
-	        	if (strncmp(line, "!!! END", 7) == 0) {
-	        		update_machine(con->machine);
-	        	}
+				line, line_len)) == RTL_LINE_FETCHED) {
+		if (line[0] == '!') {
+			if (strncmp(line, "!!! END", 7) == 0) {
+				update_machine(con->machine);
+			}
 			if (strncmp(line, "!!! BYE", 7) == 0) {
 				logout_machine(con->machine);
 			}
-	        }
-	        else {
+		} else {
 			struct login login;
 			fetch_login(line, &login);
 			update_login(con->machine, &login);
-	        }
+		}
 	}
 
 	switch (ret) {
@@ -1365,38 +1390,38 @@ static ssize_t read_message(int fd, struct connection *con) {
 			break;
 	}
 
-	return num_read;
+	return (num_read);
 }
 
 static ssize_t read_request(int fd, struct connection *con) {
 	ssize_t num_read = read(fd, con->buffer + con->offset,
-	                       DFINGER_BUFFER_SIZE - con->offset);
+				DFINGER_BUFFER_SIZE - con->offset);
 	if (num_read < 0) {
-		return num_read;
+		return (num_read);
 	}
 	con->offset += num_read;
 
 	con->buffer[con->offset] = 0;
 
-	return num_read;
+	return (num_read);
 }
 
 static ssize_t write_response(int fd, struct growing_buffer *response) {
 	size_t len;
 	if (response->len - response->offset < DFINGER_BUFFER_SIZE) {
 		len = response->len - response->offset;
-	}
-	else {
+	} else {
 		len = DFINGER_BUFFER_SIZE;
 	}
-	ssize_t num_written = write(fd, response->buffer + response->offset, len);
+	ssize_t num_written = write(fd, response->buffer + response->offset,
+					len);
 	if (num_written < 0) {
-		return num_written;
+		return (num_written);
 	}
 
 	response->offset += num_written;
 
-	return num_written;
+	return (num_written);
 }
 
 void server_run(void) {
@@ -1404,9 +1429,9 @@ void server_run(void) {
 
 	connections_size = 2;
 	connections_used = 2;
-	connections = malloc(connections_size * sizeof(struct connection));
-	memset(connections, 0, connections_size * sizeof(struct connection));
-	socks = malloc(connections_size * sizeof(struct pollfd));
+	connections = malloc(connections_size * sizeof (struct connection));
+	memset(connections, 0, connections_size * sizeof (struct connection));
+	socks = malloc(connections_size * sizeof (struct pollfd));
 	initial_bind(connections, socks, conf);
 
 	long long next_dump = cur_secs() + conf->timeout_dump;
@@ -1415,12 +1440,12 @@ void server_run(void) {
 	long long next_cut = cur_secs() + conf->timeout_cut;
 
 	struct sigaction act_sighup;
-	memset(&act_sighup, 0, sizeof(struct sigaction));
+	memset(&act_sighup, 0, sizeof (struct sigaction));
 	act_sighup.sa_handler = sighup_handler;
 	sigaction(SIGHUP, &act_sighup, NULL);
 
 	struct sigaction act_sigterm;
-	memset(&act_sigterm, 0, sizeof(struct sigaction));
+	memset(&act_sigterm, 0, sizeof (struct sigaction));
 	act_sigterm.sa_handler = sigterm_handler;
 	sigaction(SIGTERM, &act_sigterm, NULL);
 
@@ -1442,21 +1467,24 @@ void server_run(void) {
 
 		poll(socks, connections_used, remaining * 1000);
 
-		for (int i=2; i<connections_used; i++) {
+		for (int i = 2; i < connections_used; i++) {
 			if (connections[i].type == client &&
 			    socks[i].revents & POLLIN) {
-				if (read_message(socks[i].fd, &connections[i]) == 0) {
+				if (read_message(socks[i].fd,
+					&connections[i]) == 0) {
 					free_connection(i);
 				}
 			}
 
 			if (connections[i].type == finger &&
 			    socks[i].revents & POLLIN) {
-				if (read_request(socks[i].fd, &connections[i]) == 0) {
+				if (read_request(socks[i].fd,
+					&connections[i]) == 0) {
 					free_connection(i);
 				}
-				if (finger_complete_request(connections[i].buffer,
-							    connections[i].offset)) {
+				if (finger_complete_request(
+						connections[i].buffer,
+						connections[i].offset)) {
 					connections[i].offset = 0;
 					finger_respond(i);
 				}
@@ -1465,7 +1493,7 @@ void server_run(void) {
 			if (connections[i].type == finger &&
 			    socks[i].revents & POLLOUT) {
 				if (write_response(socks[i].fd,
-				               connections[i].response) == 0) {
+						connections[i].response) == 0) {
 					free_connection(i);
 				}
 			}
