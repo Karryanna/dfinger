@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <errno.h>
 
 int flush(int s, char *msg, size_t len) {
 msg[len] = 0;
@@ -63,7 +64,7 @@ long long cur_secs(void) {
 char *format_timediff(long long diff) {
 	char *textual = malloc(20);
 	if (!textual) {
-		exit(47);
+		exit(ENOMEM);
 	}
 
 	if (diff < 0) {

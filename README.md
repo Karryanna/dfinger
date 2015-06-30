@@ -48,7 +48,7 @@ Dfinger may return one of several error codes if it encounters problems.
 * 0	No problem, dfinger exited normally.
 * 1	Generic error code
 * 2	Error while parsing configuration file
-* 47	Could not allocate memory
+* ENOMEM	Could not allocate memory
 
 Files
 -----

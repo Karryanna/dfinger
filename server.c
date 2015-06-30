@@ -192,7 +192,7 @@ static void init_buffer(struct growing_buffer *buffer, size_t max_size) {
 
 	buffer->buffer = malloc(buffer->size);
 	if (!buffer->buffer) {
-		exit(47);
+		exit(ENOMEM);
 	}
 	buffer->offset = 0;
 	buffer->len = 0;
@@ -217,7 +217,7 @@ static void stack_init(struct login_stack *stack, size_t max_size) {
 
 	stack->stack = malloc(stack->size * sizeof (struct login_data *));
 	if (!stack->stack) {
-		exit(47);
+		exit(ENOMEM);
 	}
 	stack->end = 0;
 }
@@ -274,7 +274,7 @@ static void stack_add(struct login_stack *stack, struct login_data *login) {
 		}
 
 		if (!stack->stack) {
-			exit(47);
+			exit(ENOMEM);
 		}
 	}
 
@@ -369,7 +369,7 @@ static void append_buffer(struct growing_buffer *buffer, char *str,
 				buffer->size * 2 : buffer->max_size);
 		buffer->buffer = realloc(buffer->buffer, buffer->size);
 		if (!buffer->buffer) {
-			exit(47);
+			exit(ENOMEM);
 		}
 	}
 
@@ -1224,12 +1224,12 @@ static void accept_connection(int sock_id,
 		connections = realloc(connections,
 				connections_size * sizeof (struct connection));
 		if (!connections) {
-			exit(47);
+			exit(ENOMEM);
 		}
 		socks = realloc(socks,
 				connections_size * sizeof (struct pollfd));
 		if (!socks) {
-			exit(47);
+			exit(ENOMEM);
 		}
 		memset(connections + (connections_size / 2), 0,
 			(connections_size / 2) * sizeof (struct connection));

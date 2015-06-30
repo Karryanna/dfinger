@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
 #include "conf.h"
 #include "utils.h"
 
@@ -97,7 +98,7 @@ static void set_option(char *line, struct conf *conf) {
 		free(conf->dump_file);
 		conf->dump_file = malloc(strlen(value)+1);
 		if (!conf->dump_file) {
-			exit(47);
+			exit(ENOMEM);
 		}
 		strncpy(conf->dump_file, value, strlen(value)+1);
 	}
