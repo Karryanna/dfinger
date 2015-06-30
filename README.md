@@ -63,6 +63,38 @@ extensively enough.
 
 Bug submissions are welcome at e-mail <karry@karryanna.cz>
 
+Example
+-------
+
+Say there should be server running at host snowwhite, accessible at 10.10.10.1, and clients
+running at grumpy and dopey.
+
+The minimal config file for snowwhite is then just
+	IS_SERVER	1
+while minimal config file for any of the clients is
+	IS_CLIENT	1
+
+Now just run `./dfinger` or eventually `./dfinger /path/to/config` on each machine
+and clients will start feeding the server with data.
+
+Currently the easist way to retrieve info is probably using telnet though there could
+be dedicated client one day (or you may of course use common finger client if your server
+accepts finger requests at standard finger port 79).
+
+So you can for example do
+	telnet localhost 8558
+	<enter>
+to see
+	karry		grumpy		pts/7	 2m46s	  26s	:0
+	karry		dopey		pts/0	 2m29s	   2s	:0
+	queen		dopey		pts/1	 8m01s	 5m42s  me.queen.com.
+
+or
+	telnet localhost 8558
+	karry@dopey<enter>
+to see only
+	karry		dopey		pts/0	 2m29s	   2s	:0
+
 Author
 ------
 
