@@ -110,6 +110,11 @@ void client_run(void) {
 		}
 	}
 
+	if (!r) {
+		fprintf(stderr, "Could not connect to server\n");
+		exit(1);
+	}
+
 	freeaddrinfo(rorig);
 
 	char update_start[] = "!!! UPDATE\n";
