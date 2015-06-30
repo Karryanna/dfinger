@@ -19,11 +19,20 @@ struct conf {
 };
 
 #define	DFINGER_BUFFER_SIZE 4096
+#define	DFINGER_STACK_MAXSIZE 4096
+#define	DFINGER_GBUFFER_MAXSIZE 8192
 #define	DFINGER_LINE_SIZE 1000
 #define	MY_UT_LINESIZE 32
 
 #define	KEY_SIZE 40
 #define	VALUE_SIZE 256
+
+#define	DFINGER_HOST_SIZE 256
+#define	PORT_SIZE 32
+
+#define	DFINGER_FILENAME_SIZE 256
+#define	DFINGER_TIME_SIZE 20
+#define	DFINGER_UINFO_SIZE 50
 
 void parse_config(char *filename, struct conf *conf);
 void conf_set_defaults(struct conf *conf);

@@ -14,7 +14,7 @@ static void print_usage(void) {
 }
 
 struct conf *conf;
-char conf_file[256];
+char conf_file[DFINGER_FILENAME_SIZE];
 
 int main(int argc, char **argv) {
 	if (argc > 2) {
@@ -22,9 +22,9 @@ int main(int argc, char **argv) {
 		return (1);
 	}
 
-	snprintf(conf_file, 256, "config");
+	snprintf(conf_file, DFINGER_FILENAME_SIZE, "config");
 	if (argc == 2) {
-		strncpy(conf_file, argv[1], 256);
+		strncpy(conf_file, argv[1], DFINGER_FILENAME_SIZE);
 	}
 
 	conf = malloc(sizeof (struct conf));

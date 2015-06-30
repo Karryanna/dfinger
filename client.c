@@ -81,14 +81,14 @@ void client_run(void) {
 	memset(&hints, 0, sizeof (hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	char hoststr[1024];
+	char hoststr[DFINGER_HOST_SIZE];
 	if (conf->host_addr) {
-		snprintf(hoststr, 1024, "%s", conf->host_addr);
+		snprintf(hoststr, DFINGER_HOST_SIZE, "%s", conf->host_addr);
 	} else {
-		snprintf(hoststr, 1024, "%s", "localhost");
+		snprintf(hoststr, DFINGER_HOST_SIZE, "%s", "localhost");
 	}
-	char portstr[5];
-	snprintf(portstr, 5, "%d", conf->port);
+	char portstr[PORT_SIZE];
+	snprintf(portstr, PORT_SIZE, "%d", conf->port);
 	int ret = getaddrinfo(hoststr, portstr, &hints, &r);
 	if (ret != 0) {
 		fprintf(stderr, "Could not identify host\n");

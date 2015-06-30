@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <errno.h>
+#include "conf.h"
 
 int flush(int s, char *msg, size_t len) {
 msg[len] = 0;
@@ -62,24 +63,27 @@ long long cur_secs(void) {
 }
 
 char *format_timediff(long long diff) {
-	char *textual = malloc(20);
+	char *textual = malloc(DFINGER_TIME_SIZE);
 	if (!textual) {
 		exit(ENOMEM);
 	}
 
 	if (diff < 0) {
-		snprintf(textual, 20, "n/a");
+		snprintf(textual, DFINGER_TIME_SIZE, "n/a");
 	}
 
 	if (diff < 60) {
-		snprintf(textual, 20, "%llds", diff);
+		snprintf(textual, DFINGER_TIME_SIZE, "%llds", diff);
 	} else if (diff < 60 * 60) {
-		snprintf(textual, 20, "%lldm%llds", diff / 60, diff % 60);
+		snprintf(textual, DFINGER_TIME_SIZE, "%lldm%llds",
+			diff / 60, diff % 60);
 	} else if (diff < 60 * 60 * 24) {
-		snprintf(textual, 20, "%lldh%lldm", diff / (60 * 60),
+		snprintf(textual, DFINGER_TIME_SIZE, "%lldh%lldm",
+			diff / (60 * 60),
 			(diff % (60 * 60)) / 60);
 	} else {
-		snprintf(textual, 20, "%lldd%lldh", diff / (60 * 60 * 24),
+		snprintf(textual, DFINGER_TIME_SIZE, "%lldd%lldh",
+			diff / (60 * 60 * 24),
 			(diff % (60 * 60 * 24)) / (60 * 60));
 	}
 

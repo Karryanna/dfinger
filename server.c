@@ -181,7 +181,7 @@ static void init_buffer(struct growing_buffer *buffer, size_t max_size) {
 	if (max_size) {
 		buffer->max_size = max_size;
 	} else {
-		buffer->max_size = 8192; // FIX ME
+		buffer->max_size = DFINGER_GBUFFER_MAXSIZE;
 	}
 
 	if (max_size >= 2) {
@@ -206,7 +206,7 @@ static void stack_init(struct login_stack *stack, size_t max_size) {
 	if (max_size) {
 		stack->max_size = max_size;
 	} else {
-		stack->max_size = 4096; // FIX ME
+		stack->max_size = DFINGER_STACK_MAXSIZE;
 	}
 
 	if (max_size >= 2) {
@@ -746,7 +746,8 @@ static void write_logins(int dump_file) {
 
 		while (login) {
 			if (strlen(login->user->username) +
-			    strlen(login->line) + strlen(login->host) + 50
+			    strlen(login->line) + strlen(login->host) +
+			    DFINGER_UINFO_SIZE
 			    > chars_left) {
 				flush(dump_file, buffer,
 					DFINGER_BUFFER_SIZE - chars_left);
@@ -767,7 +768,8 @@ static void write_logins(int dump_file) {
 		login = machine->past_logins;
 		while (login) {
 			if (strlen(login->user->username) +
-			    strlen(login->line) + strlen(login->host) + 50
+			    strlen(login->line) + strlen(login->host) +
+			    DFINGER_UINFO_SIZE
 			    > chars_left) {
 				flush(dump_file, buffer,
 					DFINGER_BUFFER_SIZE - chars_left);
@@ -826,7 +828,7 @@ static int bind_sock(int port) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	char buf[5]; snprintf(buf, 5, "%d", port);
+	char buf[PORT_SIZE]; snprintf(buf, PORT_SIZE, "%d", port);
 	if (getaddrinfo(NULL, buf, &hints, &r) != 0) {
 		fprintf(stderr, "Could not retrieve address info\n");
 		exit(1);
@@ -1246,7 +1248,7 @@ static void accept_connection(int sock_id,
 	socks[idx].events = POLLIN;
 
 	if (type == client) {
-		char host[100]; char service[100];
+		char host[UT_HOSTSIZE]; char service[PORT_SIZE];
 		if (getnameinfo((struct sockaddr *) &ca, sizeof (ca),
 				host, sizeof (host),
 				service, sizeof (service), 0) != 0) {
