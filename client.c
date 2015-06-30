@@ -7,9 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <utmpx.h>
-#include <poll.h>
 #include <stdio.h>
-#include <errno.h>
 
 #include "client.h"
 #include "conf.h"
@@ -121,12 +119,8 @@ void client_run(void) {
 		process_online_users(sock, NULL);
 		flush(sock, update_end, strlen(update_end));
 
-		errno = 0;
-		if (poll(NULL, 0, 1000 * conf->timeout_update) < 0) {
-			switch (errno) {
-				default:
-					;
-			}
-		}
+		// There are no signal handlers implemented so it's
+		// not necessary to check return value
+		sleep(conf->timeout_update);
 	}
 }
