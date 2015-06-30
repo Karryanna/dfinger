@@ -174,4 +174,6 @@ void parse_config(char *filename, struct conf *conf) {
 		}
 		move_buffer(buffer, blen, &boffset);
 	}
+
+	close(conf_file);
 }
