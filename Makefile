@@ -1,6 +1,6 @@
 LD=gcc
 CC=gcc
-CFLAGS=-Wall -Wextra -std=c99 -O0
+CFLAGS=-Wall -Wextra -std=c99 -O2
 
 OBJECTS=server.o client.o conf.o dfinger.o utils.o
 

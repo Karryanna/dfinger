@@ -78,7 +78,7 @@ static void process_online_users(int s, void *(f)(char *)) {
 }
 
 void client_run(void) {
-	int sock;
+	int sock = -1;
 	struct addrinfo *r, *rorig, hints;
 	memset(&hints, 0, sizeof (hints));
 	hints.ai_family = AF_UNSPEC;
