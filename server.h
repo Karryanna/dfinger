@@ -26,7 +26,7 @@ struct login_data {
 	struct machine *machine;
 	long long login_time;
 	long long idle_time;
-	char line[MY_UT_LINESIZE];
+	char line[UT_LINESIZE];
 	char host[UT_HOSTSIZE];
 
 	struct login_data *next_by_machine;

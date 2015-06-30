@@ -22,7 +22,16 @@ struct conf {
 #define	DFINGER_STACK_MAXSIZE 4096
 #define	DFINGER_GBUFFER_MAXSIZE 8192
 #define	DFINGER_LINE_SIZE 1000
-#define	MY_UT_LINESIZE 32
+
+#ifndef	UT_LINESIZE
+#define	UT_LINESIZE 32
+#endif
+#ifndef	UT_NAMESIZE
+#define	UT_MAMESIZE 32
+#endif
+#ifndef	UT_HOSTSIZE
+#define	UT_HOSTSIZE 256
+#endif
 
 #define	KEY_SIZE 40
 #define	VALUE_SIZE 256

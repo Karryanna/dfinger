@@ -49,7 +49,7 @@ struct login {
 	long long idle_time;
 	char user[UT_NAMESIZE];
 	char host[UT_HOSTSIZE];
-	char line[MY_UT_LINESIZE];
+	char line[UT_LINESIZE];
 };
 
 struct login_stack {
@@ -958,7 +958,7 @@ static void add_raw_login(struct machine *machine, struct login *login) {
 	login_data->machine = machine;
 	login_data->login_time = login->login_time;
 	login_data->idle_time = login->idle_time;
-	strncpy(login_data->line, login->line, MY_UT_LINESIZE);
+	strncpy(login_data->line, login->line, UT_LINESIZE);
 	strncpy(login_data->host, login->host, UT_HOSTSIZE);
 
 	if ((login_data->user = find_user(login->user)) == NULL) {
@@ -1301,7 +1301,7 @@ static int fetch_login(char *buffer, struct login *login) {
 		return (1);
 	}
 
-	buffer = get_next_field(buffer, login->line, MY_UT_LINESIZE);
+	buffer = get_next_field(buffer, login->line, UT_LINESIZE);
 	if (!buffer) {
 		return (1);
 	}

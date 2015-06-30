@@ -28,11 +28,11 @@ static char * parse_user(const struct utmpx *uinfo, int *written) {
 	long long idle_time;
 	struct timeval cur_time;
 
-	char term_buf[MY_UT_LINESIZE+10];
+	char term_buf[UT_LINESIZE+10];
 
 	struct stat buffer;
-	memset(term_buf, 0, MY_UT_LINESIZE + 10);
-	snprintf(term_buf, 5+MY_UT_LINESIZE+1, "/dev/%s", uinfo->ut_line);
+	memset(term_buf, 0, UT_LINESIZE + 10);
+	snprintf(term_buf, 5+UT_LINESIZE+1, "/dev/%s", uinfo->ut_line);
 	if (gettimeofday(&cur_time, NULL) != 0) {
 		// FIX ME
 	}
