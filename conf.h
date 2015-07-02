@@ -27,7 +27,7 @@ struct conf {
 #define	UT_LINESIZE 32
 #endif
 #ifndef	UT_NAMESIZE
-#define	UT_MAMESIZE 32
+#define	UT_NAMESIZE 32
 #endif
 #ifndef	UT_HOSTSIZE
 #define	UT_HOSTSIZE 256
