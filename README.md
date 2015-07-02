@@ -73,6 +73,7 @@ The minimal config file for snowwhite is then just
 	IS_SERVER	1
 while minimal config file for any of the clients is
 	IS_CLIENT	1
+	SERVER_ADDR	10.10.10.1
 
 Now just run `./dfinger` or eventually `./dfinger /path/to/config` on each machine
 and clients will start feeding the server with data.
