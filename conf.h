@@ -32,6 +32,7 @@ struct conf {
 #ifndef	UT_HOSTSIZE
 #define	UT_HOSTSIZE 256
 #endif
+#define	DFINGER_UT_LINEPREFIX 10
 
 #define	KEY_SIZE 40
 #define	VALUE_SIZE 256
@@ -45,4 +46,6 @@ struct conf {
 
 void parse_config(char *filename, struct conf *conf);
 void conf_set_defaults(struct conf *conf);
+
+#include <errno.h>
 #endif

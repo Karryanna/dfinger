@@ -19,7 +19,7 @@ char conf_file[DFINGER_FILENAME_SIZE];
 int main(int argc, char **argv) {
 	if (argc > 2) {
 		print_usage();
-		return (1);
+		return (EINVAL);
 	}
 
 	snprintf(conf_file, DFINGER_FILENAME_SIZE, "config");
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 	if (!conf) {
 		fprintf(stderr,
 			"Could not allocate memory for configuration\n");
-		return (1);
+		return (EINVAL);
 	}
 	memset(conf, 0, sizeof (struct conf));
 	conf_set_defaults(conf);
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
 	if (!conf->is_server && !conf->is_client) {
 		fprintf(stderr, "Neither server nor client run specified\n");
-		return (1);
+		return (EINVAL);
 	}
 
 	return (0);

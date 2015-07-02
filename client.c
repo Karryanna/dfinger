@@ -28,11 +28,12 @@ static char * parse_user(const struct utmpx *uinfo, int *written) {
 	long long idle_time;
 	struct timeval cur_time;
 
-	char term_buf[UT_LINESIZE+10];
+	char term_buf[UT_LINESIZE+DFINGER_UT_LINEPREFIX];
 
 	struct stat buffer;
-	memset(term_buf, 0, UT_LINESIZE + 10);
-	snprintf(term_buf, 5+UT_LINESIZE+1, "/dev/%s", uinfo->ut_line);
+	memset(term_buf, 0, UT_LINESIZE+DFINGER_UT_LINEPREFIX);
+	snprintf(term_buf, UT_LINESIZE+DFINGER_UT_LINEPREFIX, "/dev/%s",
+		    uinfo->ut_line);
 	if (gettimeofday(&cur_time, NULL) != 0) {
 		// FIX ME
 	}
@@ -92,14 +93,14 @@ void client_run(void) {
 	int ret = getaddrinfo(hoststr, portstr, &hints, &r);
 	if (ret != 0) {
 		fprintf(stderr, "Could not identify host\n");
-		exit(2);
+		exit(EINVAL);
 	}
 
 	for (rorig = r; r != NULL; r = r->ai_next) {
 		sock = socket(r->ai_family, r->ai_socktype, r->ai_protocol);
 		if (sock < 0) {
 			fprintf(stderr, "Could not open socket to host\n");
-			exit(2);
+			exit(EINVAL);
 		}
 
 		if (connect(sock, (struct sockaddr *) r->ai_addr,
@@ -112,7 +113,7 @@ void client_run(void) {
 
 	if (!r) {
 		fprintf(stderr, "Could not connect to server\n");
-		exit(1);
+		exit(EINVAL);
 	}
 
 	freeaddrinfo(rorig);

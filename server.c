@@ -614,7 +614,7 @@ static void read_data(void) {
 							fprintf(stderr,
 							"Unexpected blank line"
 							" in dumpfile\n");
-							exit(2);
+							exit(EINVAL);
 					}
 					break;
 				case RTL_LINE_FETCHED:
@@ -645,7 +645,7 @@ static void read_data(void) {
 					fprintf(stderr,
 					"Error occured while parsing "
 					"dumpfile\n");
-					exit(2);
+					exit(EINVAL);
 			}
 
 		}
@@ -831,18 +831,18 @@ static int bind_sock(int port) {
 	char buf[PORT_SIZE]; snprintf(buf, PORT_SIZE, "%d", port);
 	if (getaddrinfo(NULL, buf, &hints, &r) != 0) {
 		fprintf(stderr, "Could not retrieve address info\n");
-		exit(1);
+		exit(EINVAL);
 	}
 
 	int fd;
 	if ((fd = socket(r->ai_family, r->ai_socktype, r->ai_protocol)) == -1) {
 		fprintf(stderr, "Could not open socket\n");
-		exit(1);
+		exit(EINVAL);
 	}
 
 	if (bind(fd, r->ai_addr, r->ai_addrlen) == -1) {
 		fprintf(stderr, "Could not bind socket\n");
-		exit(1);
+		exit(EINVAL);
 	}
 
 	return (fd);

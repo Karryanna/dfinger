@@ -46,8 +46,7 @@ Exit status
 Dfinger may return one of several error codes if it encounters problems.
 
 * 0	No problem, dfinger exited normally.
-* 1	Generic error code
-* 2	Error while parsing configuration file
+* EINVAL	Generic error code
 * ENOMEM	Could not allocate memory
 
 Files
